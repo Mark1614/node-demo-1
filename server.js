@@ -22,34 +22,35 @@ var server = http.createServer(function (request, response) {
   /******** 从这里开始看，上面不要看 ************/
 
   console.log("有个傻子发请求过来啦！路径（带查询参数）为：" + pathWithQuery);
+  //设置响应状态码
+  response.statusCode = 200;
+  //默认首页
+  const filePath = path === "/" ? "/index.html" : path;
+  const index = filePath.lastIndexOf(".");
+  //suffix 代表后缀
+  const suffix = filePath.substring(index);
+  const fileTypes = {
+    ".html": "text/html",
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".jpg": "image/png",
+  };
+  //设置响应头
+  response.setHeader(
+    "Content-Type",
+    `${fileTypes[suffix] || "text/html"};charset=utf-8`
+  );
 
-  if (path === "/") {
-    //设置响应状态码
-    response.statusCode = 200;
-    //设置响应头
-    response.setHeader("Content-Type", "text/html;charset=utf-8");
-    //设置响应体
-    response.write(`
-    <!DOCTYPE html>
-      <head>
-            <link rel="stylesheet" href="/x">
-      </head>
-      <body>
-         <h1>你看见我了</h1>
-      </body>   
-    `);
-    response.end();
-  } else if (path === "/x") {
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "text/css;charset=utf-8");
-    response.write(`h1{color: red;}`);
-    response.end();
-  } else {
+  //输入不同路径，跳转不同页面
+  let content;
+  try {
+    content = fs.readFileSync(`./public${filePath}`);
+  } catch (error) {
+    content = "文件不存在";
     response.statusCode = 404;
-    response.setHeader("Content-Type", "text/html;charset=utf-8");
-    response.write(`你访问的页面不存在`);
-    response.end();
   }
+  response.write(content);
+  response.end();
 
   /******** 代码结束，下面不要看 ************/
 });
